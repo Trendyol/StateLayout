@@ -7,6 +7,7 @@ data class StateInfo(
     val infoTitle: String? = null,
     val infoMessage: String? = null,
     val infoButtonText: String? = null,
+    val infoButtonVisibility: Int? = null,
     val state: State = State.INFO,
     val onInfoButtonClick: (() -> Unit)? = null,
     val loadingAnimation: Animation? = null,

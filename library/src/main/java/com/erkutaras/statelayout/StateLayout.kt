@@ -39,24 +39,28 @@ class StateLayout : FrameLayout {
         context.theme.obtainStyledAttributes(attrs, R.styleable.StateLayout, 0, 0)
             .apply {
                 try {
-                    state = State.values()[getInteger(R.styleable.StateLayout_state, NONE.ordinal)]
+                    state =
+                        State.values()[getInteger(R.styleable.StateLayout_sl_state, NONE.ordinal)]
                     loadingLayoutRes = getResourceId(
-                        R.styleable.StateLayout_loadingLayout,
+                        R.styleable.StateLayout_sl_loadingLayout,
                         R.layout.layout_state_loading
                     )
                     infoLayoutRes = getResourceId(
-                        R.styleable.StateLayout_infoLayout,
+                        R.styleable.StateLayout_sl_infoLayout,
                         R.layout.layout_state_info
                     )
                     loadingWithContentLayoutRes = getResourceId(
-                        R.styleable.StateLayout_loadingWithContentLayout,
+                        R.styleable.StateLayout_sl_loadingWithContentLayout,
                         R.layout.layout_state_loading_with_content
                     )
 
-                    getResourceId(R.styleable.StateLayout_loadingAnimation, 0).notZero {
+                    getResourceId(R.styleable.StateLayout_sl_loadingAnimation, 0).notZero {
                         loadingAnimation = AnimationUtils.loadAnimation(context, it)
                     }
-                    getResourceId(R.styleable.StateLayout_loadingWithContentAnimation, 0).notZero {
+                    getResourceId(
+                        R.styleable.StateLayout_sl_loadingWithContentAnimation,
+                        0
+                    ).notZero {
                         loadingWithContentAnimation = AnimationUtils.loadAnimation(context, it)
                     }
                 } finally {
@@ -227,6 +231,12 @@ class StateLayout : FrameLayout {
         }
     }
 
+    private fun infoButtonVisibility(visibility: Int) {
+        infoLayout.findView<Button>(R.id.button_state_layout_info) {
+            this.visibility = visibility
+        }
+    }
+
     private fun infoButtonText(buttonText: String) {
         infoLayout.findView<Button>(R.id.button_state_layout_info) {
             text = buttonText
@@ -293,6 +303,7 @@ class StateLayout : FrameLayout {
                         infoTitle?.let { stateLayout.infoTitle(it) }
                         infoMessage?.let { stateLayout.infoMessage(it) }
                         infoButtonText?.let { stateLayout.infoButtonText(it) }
+                        infoButtonVisibility?.let { stateLayout.infoButtonVisibility(it) }
                         onInfoButtonClick?.let { stateLayout.infoButtonListener(it) }
                     }
                     stateLayout.info()
