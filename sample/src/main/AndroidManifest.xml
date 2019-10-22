@@ -25,6 +25,8 @@
                   android:label="StateLayout - Custom Usage"/>
         <activity android:name=".AnimationLoadingSampleActivity"
                   android:label="StateLayout - Animation Loading"/>
+        <activity android:name=".ErrorSampleActivity"
+            android:label="StateLayout - Error Usage"/>
     </application>
 
 </manifest>

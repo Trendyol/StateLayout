@@ -9,4 +9,8 @@
         android:id="@+id/menu_custom"
         android:title="@string/custom_usage"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_error"
+        android:title="@string/error"
+        app:showAsAction="never"/>
 </menu>

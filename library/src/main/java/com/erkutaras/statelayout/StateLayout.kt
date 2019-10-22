@@ -81,6 +81,7 @@ class StateLayout : FrameLayout {
 
     private var loadingAnimation: Animation? = null
     private var loadingWithContentAnimation: Animation? = null
+    var decider = object : Decider {}
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -271,24 +272,33 @@ class StateLayout : FrameLayout {
     fun showState(stateInfo: StateInfo?) {
         loadingAnimation = stateInfo?.loadingAnimation
         loadingWithContentAnimation = stateInfo?.loadingWithContentAnimation
-        when (stateInfo?.state) {
-            LOADING -> {
-                stateInfo.loadingMessage?.let { loadingMessage(it) }
-                loading()
-            }
-            CONTENT -> content()
-            LOADING_WITH_CONTENT -> loadingWithContent()
-            INFO, ERROR, EMPTY -> {
-                with(stateInfo) {
-                    infoImage?.let { infoImage(it) }
-                    infoTitle?.let { infoTitle(it) }
-                    infoMessage?.let { infoMessage(it) }
-                    infoButtonText?.let { infoButtonText(it) }
-                    onInfoButtonClick?.let { infoButtonListener(it) }
+        stateInfo?.let {
+            decider.decide(this, it)
+        }
+    }
+
+    interface Decider {
+
+        fun decide(stateLayout: StateLayout, stateInfo: StateInfo) {
+            when (stateInfo.state) {
+                LOADING -> {
+                    stateInfo.loadingMessage?.let { stateLayout.loadingMessage(it) }
+                    stateLayout.loading()
                 }
-                info()
+                CONTENT -> stateLayout.content()
+                LOADING_WITH_CONTENT -> stateLayout.loadingWithContent()
+                INFO, ERROR, EMPTY -> {
+                    with(stateInfo) {
+                        infoImage?.let { stateLayout.infoImage(it) }
+                        infoTitle?.let { stateLayout.infoTitle(it) }
+                        infoMessage?.let { stateLayout.infoMessage(it) }
+                        infoButtonText?.let { stateLayout.infoButtonText(it) }
+                        onInfoButtonClick?.let { stateLayout.infoButtonListener(it) }
+                    }
+                    stateLayout.info()
+                }
+                null, NONE -> stateLayout.hideAll()
             }
-            null, NONE -> hideAll()
         }
     }
 
