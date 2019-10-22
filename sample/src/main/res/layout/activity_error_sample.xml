@@ -12,9 +12,9 @@
 		android:layout_height="match_parent"
 		android:layout_marginTop="8dp"
 		android:layout_marginBottom="8dp"
-		app:infoLayout="@layout/layout_custom_info"
-		app:loadingLayout="@layout/layout_custom_loading"
-		app:state="content">
+		app:sl_infoLayout="@layout/layout_custom_info"
+		app:sl_loadingLayout="@layout/layout_custom_loading"
+		app:sl_state="content">
 
 		<LinearLayout
 			android:layout_width="match_parent"
