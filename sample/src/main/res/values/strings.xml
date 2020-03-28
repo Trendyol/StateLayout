@@ -4,4 +4,7 @@
     <string name="simple_usage">Simple Usage</string>
     <string name="custom_usage">Custom Usage</string>
     <string name="loading_animation">Loading Animation</string>
+    <string name="error">Error</string>
+	<string name="show_content_state">Show Content State</string>
+    <string name="show_error_state">Show Error State</string>
 </resources>

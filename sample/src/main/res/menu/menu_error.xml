@@ -2,16 +2,15 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_custom"
-        android:title="@string/custom_usage"
+        android:id="@+id/menu_simple"
+        android:title="@string/simple_usage"
         app:showAsAction="never"/>
     <item
         android:id="@+id/menu_loading_animation"
         android:title="@string/loading_animation"
         app:showAsAction="never"/>
-
     <item
-        android:id="@+id/menu_error"
-        android:title="@string/error"
+        android:id="@+id/menu_custom"
+        android:title="@string/custom_usage"
         app:showAsAction="never"/>
 </menu>

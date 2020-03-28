@@ -2,15 +2,18 @@ package com.erkutaras.statelayout.sample
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.webkit.*
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import com.erkutaras.statelayout.StateLayout
-import kotlinx.android.synthetic.main.activity_custom_sample.*
-import kotlinx.android.synthetic.main.layout_custom_info.*
-import kotlinx.android.synthetic.main.layout_custom_loading.*
+import kotlinx.android.synthetic.main.activity_custom_sample.stateLayout
+import kotlinx.android.synthetic.main.activity_custom_sample.webView
+import kotlinx.android.synthetic.main.layout_custom_info.button_close
+import kotlinx.android.synthetic.main.layout_custom_info.button_refresh
+import kotlinx.android.synthetic.main.layout_custom_loading.contentLoadingProgressBar
+import kotlinx.android.synthetic.main.layout_custom_loading.textView_progress
 
 /**
  * Created by erkutaras on 21.12.2018.
@@ -30,11 +33,15 @@ class CustomSampleActivity : SampleBaseActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 hasError = false
-                if (url.equals(WEB_URL)) stateLayout.loading()
-                else stateLayout.loadingWithContent()
+                if (url.equals(WEB_URL)) stateLayout.showState(StateLayout.provideLoadingStateInfo())
+                else stateLayout.showState(StateLayout.provideLoadingWithContentStateInfo())
             }
 
-            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
                 super.onReceivedError(view, request, error)
                 hasError = true
                 showInfoState()
@@ -46,7 +53,7 @@ class CustomSampleActivity : SampleBaseActivity() {
                 contentLoadingProgressBar.progress = newProgress
                 textView_progress.text = "$newProgress%"
 
-                if (!hasError && newProgress == 100) stateLayout.content()
+                if (!hasError && newProgress == 100) stateLayout.showState(StateLayout.provideContentStateInfo())
                 if (hasError && newProgress == 100) showInfoState()
             }
         }
@@ -56,7 +63,7 @@ class CustomSampleActivity : SampleBaseActivity() {
     override fun getMenuResId(): Int = R.menu.menu_custom
 
     private fun showInfoState() {
-        stateLayout.info()
+        stateLayout.showState(StateLayout.provideInfoStateInfo())
         button_refresh.setOnClickListener { loadUrl() }
         button_close.setOnClickListener { finish() }
     }

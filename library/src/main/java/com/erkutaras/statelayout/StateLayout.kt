@@ -10,15 +10,64 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.LayoutRes
-import com.erkutaras.statelayout.StateLayout.State.*
+import com.erkutaras.statelayout.State.CONTENT
+import com.erkutaras.statelayout.State.EMPTY
+import com.erkutaras.statelayout.State.ERROR
+import com.erkutaras.statelayout.State.INFO
+import com.erkutaras.statelayout.State.LOADING
+import com.erkutaras.statelayout.State.LOADING_WITH_CONTENT
+import com.erkutaras.statelayout.State.NONE
 
 /**
  * Created by erkutaras on 9.09.2018.
  */
-class StateLayout @JvmOverloads constructor(context: Context,
-                                            attrs: AttributeSet? = null,
-                                            defStyleAttr: Int = 0)
-    : FrameLayout(context, attrs, defStyleAttr) {
+class StateLayout : FrameLayout {
+
+    constructor(context: Context) : this(context, null)
+
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        if (isInEditMode) {
+            state = CONTENT
+        }
+
+        context.theme.obtainStyledAttributes(attrs, R.styleable.StateLayout, 0, 0)
+            .apply {
+                try {
+                    state =
+                        State.values()[getInteger(R.styleable.StateLayout_sl_state, NONE.ordinal)]
+                    loadingLayoutRes = getResourceId(
+                        R.styleable.StateLayout_sl_loadingLayout,
+                        R.layout.layout_state_loading
+                    )
+                    infoLayoutRes = getResourceId(
+                        R.styleable.StateLayout_sl_infoLayout,
+                        R.layout.layout_state_info
+                    )
+                    loadingWithContentLayoutRes = getResourceId(
+                        R.styleable.StateLayout_sl_loadingWithContentLayout,
+                        R.layout.layout_state_loading_with_content
+                    )
+
+                    getResourceId(R.styleable.StateLayout_sl_loadingAnimation, 0).notZero {
+                        loadingAnimation = AnimationUtils.loadAnimation(context, it)
+                    }
+                    getResourceId(
+                        R.styleable.StateLayout_sl_loadingWithContentAnimation,
+                        0
+                    ).notZero {
+                        loadingWithContentAnimation = AnimationUtils.loadAnimation(context, it)
+                    }
+                } finally {
+                    recycle()
+                }
+            }
+    }
 
     private var contentLayout: View? = null
     private var loadingLayout: View? = null
@@ -36,31 +85,7 @@ class StateLayout @JvmOverloads constructor(context: Context,
 
     private var loadingAnimation: Animation? = null
     private var loadingWithContentAnimation: Animation? = null
-
-    init {
-        if (isInEditMode) {
-            state = CONTENT
-        }
-
-        context.theme.obtainStyledAttributes(attrs, R.styleable.StateLayout, 0, 0)
-            .apply {
-                try {
-                    state = State.values()[getInteger(R.styleable.StateLayout_sl_state, NONE.ordinal)]
-                    loadingLayoutRes = getResourceId(R.styleable.StateLayout_sl_loadingLayout, R.layout.layout_state_loading)
-                    infoLayoutRes = getResourceId(R.styleable.StateLayout_sl_infoLayout, R.layout.layout_state_info)
-                    loadingWithContentLayoutRes = getResourceId(R.styleable.StateLayout_sl_loadingWithContentLayout, R.layout.layout_state_loading_with_content)
-
-                    getResourceId(R.styleable.StateLayout_sl_loadingAnimation, 0).notZero {
-                        loadingAnimation = AnimationUtils.loadAnimation(context, it)
-                    }
-                    getResourceId(R.styleable.StateLayout_sl_loadingWithContentAnimation, 0).notZero {
-                        loadingWithContentAnimation = AnimationUtils.loadAnimation(context, it)
-                    }
-                } finally {
-                    recycle()
-                }
-            }
-    }
+    var decider = object : Decider {}
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -75,24 +100,24 @@ class StateLayout @JvmOverloads constructor(context: Context,
 
     private fun setupContentState() {
         contentLayout = getChildAt(0)
-        contentLayout?.visibility = View.GONE
+        contentLayout?.gone()
     }
 
     private fun setupLoadingState() {
         loadingLayout = inflate(loadingLayoutRes)
-        loadingLayout?.visibility = View.GONE
+        loadingLayout?.gone()
         addView(loadingLayout)
     }
 
     private fun setupInfoState() {
         infoLayout = inflate(infoLayoutRes)
-        infoLayout?.visibility = View.GONE
+        infoLayout?.gone()
         addView(infoLayout)
     }
 
     private fun setupLoadingWithContentState() {
         loadingWithContentLayout = inflate(loadingWithContentLayoutRes)
-        loadingWithContentLayout?.visibility = View.GONE
+        loadingWithContentLayout?.gone()
         addView(loadingWithContentLayout)
     }
 
@@ -113,138 +138,118 @@ class StateLayout @JvmOverloads constructor(context: Context,
     }
 
     private fun hideAll() {
-        updateLoadingVisibility(View.GONE)
+        updateLoadingVisibility(GONE)
         contentLayout.gone()
         infoLayout.gone()
-        updateLoadingWithContentVisibility(View.GONE)
+        updateLoadingWithContentVisibility(GONE)
     }
 
     private fun updateLoadingVisibility(visibility: Int) =
         when (visibility) {
-            View.VISIBLE -> loadingLayout.visible { it.startViewAnimation(R.id.customView_state_layout_loading, loadingAnimation) }
+            VISIBLE -> loadingLayout.visible {
+                it.startViewAnimation(
+                    R.id.customView_state_layout_loading,
+                    loadingAnimation
+                )
+            }
             else -> loadingLayout.gone { it.clearViewAnimation(R.id.customView_state_layout_loading) }
         }
 
     private fun updateLoadingWithContentVisibility(visibility: Int) =
         when (visibility) {
-            View.VISIBLE -> loadingWithContentLayout.visible { it.startViewAnimation(R.id.customView_state_layout_with_content, loadingWithContentAnimation) }
+            VISIBLE -> loadingWithContentLayout.visible {
+                it.startViewAnimation(
+                    R.id.customView_state_layout_with_content,
+                    loadingWithContentAnimation
+                )
+            }
             else -> loadingWithContentLayout.gone { it.clearViewAnimation(R.id.customView_state_layout_with_content) }
         }
 
     private fun throwChildCountException(): Nothing =
         throw IllegalStateException("StateLayout can host only one direct child")
 
-    fun initialState(state: State) {
-        this.state = state
-    }
-
-    fun loadingMessage(message: String): StateLayout {
+    private fun loadingMessage(message: String) {
         loadingLayout.findView<TextView>(R.id.textView_state_layout_loading_message) {
             text = message
-            visibility = View.VISIBLE
+            visible()
         }
-        return loading()
     }
 
-    fun loadingAnimation(animation: Animation): StateLayout {
+    private fun loadingAnimation(animation: Animation) {
         loadingAnimation = animation
-        return loading()
+        loading()
     }
 
-    fun loading(): StateLayout {
+    private fun loading() {
         state = LOADING
-        updateLoadingVisibility(View.VISIBLE)
+        updateLoadingVisibility(VISIBLE)
         contentLayout.gone()
         infoLayout.gone()
-        updateLoadingWithContentVisibility(View.GONE)
-        return this
+        updateLoadingWithContentVisibility(GONE)
     }
 
-    fun loading(@LayoutRes layoutId: Int) {
+    private fun loading(@LayoutRes layoutId: Int) {
         this.loadingLayoutRes = layoutId
         removeView(loadingLayout)
         setupLoadingState()
         showState(provideLoadingStateInfo())
     }
 
-    fun content(): StateLayout {
+    private fun content() {
         state = CONTENT
-        updateLoadingVisibility(View.GONE)
+        updateLoadingVisibility(GONE)
         contentLayout.visible()
         infoLayout.gone()
-        updateLoadingWithContentVisibility(View.GONE)
-        return this
+        updateLoadingWithContentVisibility(GONE)
     }
 
-    fun infoImage(imageRes: Int): StateLayout {
+    private fun infoImage(imageRes: Int) {
         infoLayout.findView<ImageView>(R.id.imageView_state_layout_info) {
             setImageResource(imageRes)
-            visibility = View.VISIBLE
+            visible()
         }
-        return info()
     }
 
-    fun infoTitle(title: String): StateLayout {
+    private fun infoTitle(title: String) {
         infoLayout.findView<TextView>(R.id.textView_state_layout_info_title) {
             text = title
-            visibility = View.VISIBLE
+            visible()
         }
-        return info()
     }
 
-    fun infoMessage(message: String): StateLayout {
+    private fun infoMessage(message: String) {
         infoLayout.findView<TextView>(R.id.textView_state_layout_info_message) {
             text = message
-            visibility = View.VISIBLE
+            visible()
         }
-        return info()
     }
 
-    @Deprecated("infoButtonListener(block: () -> Unit) calling is more convenient")
-    fun infoButtonListener(onStateLayoutListener: OnStateLayoutListener?): StateLayout {
-        infoLayout.findView<Button>(R.id.button_state_layout_info) {
-            setOnClickListener { onStateLayoutListener?.onStateLayoutInfoButtonClick() }
-        }
-        return info()
-    }
-
-    fun infoButtonListener(block: () -> Unit) {
+    private fun infoButtonListener(block: () -> Unit) {
         infoLayout.findView<Button>(R.id.button_state_layout_info) {
             setOnClickListener { block.invoke() }
         }
     }
 
-    fun infoButtonVisibility(visibility: Int) {
+    private fun infoButtonVisibility(visibility: Int) {
         infoLayout.findView<Button>(R.id.button_state_layout_info) {
             this.visibility = visibility
         }
-        info()
     }
 
-    fun infoButtonText(buttonText: String): StateLayout {
+    private fun infoButtonText(buttonText: String) {
         infoLayout.findView<Button>(R.id.button_state_layout_info) {
             text = buttonText
-            visibility = View.VISIBLE
+            visible()
         }
-        return info()
     }
 
-    fun infoButton(buttonText: String, onStateLayoutListener: OnStateLayoutListener?): StateLayout {
-        infoLayout.findView<Button>(R.id.button_state_layout_info) {
-            text = buttonText
-            setOnClickListener { onStateLayoutListener?.onStateLayoutInfoButtonClick() }
-            visibility = View.VISIBLE
-        }
-        return info()
-    }
-
-    fun info(): StateLayout {
+    private fun info() {
         state = INFO
-        updateLoadingVisibility(View.GONE)
+        updateLoadingVisibility(GONE)
         contentLayout.gone()
         infoLayout.visible()
-        updateLoadingWithContentVisibility(View.GONE)
-        return this
+        updateLoadingWithContentVisibility(GONE)
     }
 
     fun info(@LayoutRes layoutId: Int) {
@@ -254,18 +259,17 @@ class StateLayout @JvmOverloads constructor(context: Context,
         showState(provideInfoStateInfo())
     }
 
-    fun loadingWithContentAnimation(animation: Animation): StateLayout {
+    private fun loadingWithContentAnimation(animation: Animation) {
         loadingWithContentAnimation = animation
-        return loadingWithContent()
+        loadingWithContent()
     }
 
-    fun loadingWithContent(): StateLayout {
+    private fun loadingWithContent() {
         state = LOADING_WITH_CONTENT
-        updateLoadingVisibility(View.GONE)
+        updateLoadingVisibility(GONE)
         contentLayout.visible()
         infoLayout.gone()
-        updateLoadingWithContentVisibility(View.VISIBLE)
-        return this
+        updateLoadingWithContentVisibility(VISIBLE)
     }
 
     fun loadingWithContent(@LayoutRes layoutId: Int) {
@@ -275,34 +279,37 @@ class StateLayout @JvmOverloads constructor(context: Context,
         showState(provideLoadingWithContentStateInfo())
     }
 
-    fun showLoading(stateInfo: StateInfo?) = showState(stateInfo)
-
-    fun showContent(stateInfo: StateInfo?) = showState(stateInfo)
-
-    fun showInfo(stateInfo: StateInfo?) = showState(stateInfo)
-
-    fun showLoadingWithContent(stateInfo: StateInfo?) = showState(stateInfo)
-
-    fun showError(stateInfo: StateInfo?) = showState(stateInfo)
-
-    fun showEmpty(stateInfo: StateInfo?) = showState(stateInfo)
-
     fun showState(stateInfo: StateInfo?) {
         loadingAnimation = stateInfo?.loadingAnimation
         loadingWithContentAnimation = stateInfo?.loadingWithContentAnimation
-        when (stateInfo?.state) {
-            LOADING -> loading()
-            CONTENT -> content()
-            LOADING_WITH_CONTENT -> loadingWithContent()
-            INFO, ERROR, EMPTY -> {
-                stateInfo.infoImage?.let { infoImage(it) }
-                stateInfo.infoTitle?.let { infoTitle(it) }
-                stateInfo.infoMessage?.let { infoMessage(it) }
-                stateInfo.infoButtonText?.let { infoButtonText(it) }
-                stateInfo.onStateLayoutListener?.let { infoButtonListener(it) }
-                stateInfo.onInfoButtonClick?.let { infoButtonListener(it) }
+        stateInfo?.let {
+            decider.decide(this, it)
+        }
+    }
+
+    interface Decider {
+
+        fun decide(stateLayout: StateLayout, stateInfo: StateInfo) {
+            when (stateInfo.state) {
+                LOADING -> {
+                    stateInfo.loadingMessage?.let { stateLayout.loadingMessage(it) }
+                    stateLayout.loading()
+                }
+                CONTENT -> stateLayout.content()
+                LOADING_WITH_CONTENT -> stateLayout.loadingWithContent()
+                INFO, ERROR, EMPTY -> {
+                    with(stateInfo) {
+                        infoImage?.let { stateLayout.infoImage(it) }
+                        infoTitle?.let { stateLayout.infoTitle(it) }
+                        infoMessage?.let { stateLayout.infoMessage(it) }
+                        infoButtonText?.let { stateLayout.infoButtonText(it) }
+                        infoButtonVisibility?.let { stateLayout.infoButtonVisibility(it) }
+                        onInfoButtonClick?.let { stateLayout.infoButtonListener(it) }
+                    }
+                    stateLayout.info()
+                }
+                null, NONE -> stateLayout.hideAll()
             }
-            null, NONE -> hideAll()
         }
     }
 
@@ -329,24 +336,4 @@ class StateLayout @JvmOverloads constructor(context: Context,
         fun provideNoneStateInfo() = StateInfo(state = NONE)
     }
 
-    interface OnStateLayoutListener {
-        fun onStateLayoutInfoButtonClick()
-    }
-
-    enum class State {
-        LOADING, CONTENT, INFO, LOADING_WITH_CONTENT, ERROR, EMPTY, NONE
-    }
-
-    data class StateInfo(
-        val infoImage: Int? = null,
-        val infoTitle: String? = null,
-        val infoMessage: String? = null,
-        val infoButtonText: String? = null,
-        val state: StateLayout.State = INFO,
-        @Deprecated("onInfoButtonClick is more convenient")
-        val onStateLayoutListener: StateLayout.OnStateLayoutListener? = null,
-        val onInfoButtonClick: (() -> Unit)? = null,
-        val loadingAnimation: Animation? = null,
-        val loadingWithContentAnimation: Animation? = null
-    )
 }

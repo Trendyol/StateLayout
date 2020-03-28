@@ -33,6 +33,10 @@ abstract class SampleBaseActivity : AppCompatActivity() {
                 startActivity(Intent(this, AnimationLoadingSampleActivity::class.java))
                 return true
             }
+            R.id.menu_error -> {
+                startActivity(Intent(this, ErrorSampleActivity::class.java))
+                return true
+            }
         }
         return super.onOptionsItemSelected(item)
     }
