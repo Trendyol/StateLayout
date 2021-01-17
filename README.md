@@ -75,10 +75,11 @@ stateLayout.content()
 stateLayout.loadingWithContent()
         
 // error/info
-stateLayout.infoImage(R.drawable.ic_android_black_64dp)
-                .infoTitle("Ooops.... :(")
-                .infoMessage("Unexpected error occurred. Please refresh the page!")
-                .infoButton("Refresh", onStateLayoutListener)
+stateLayout.InfoLayoutBuilder()
+                    .infoImage(R.drawable.ic_android_black_64dp)
+                    .infoTitle("Ooops.... :(")
+                    .infoMessage("Unexpected error occurred. Please refresh the page!")
+                    .infoButton("Refresh", onStateLayoutListener)
 // error/info 
 stateLayout.info()
 ``` 
