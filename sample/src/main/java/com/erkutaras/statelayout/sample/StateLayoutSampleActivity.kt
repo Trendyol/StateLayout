@@ -9,7 +9,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import com.erkutaras.statelayout.StateLayout
-import kotlinx.android.synthetic.main.activity_state_layout_sample.*
+import kotlinx.android.synthetic.main.activity_state_layout_sample.stateLayout
+import kotlinx.android.synthetic.main.activity_state_layout_sample.webView
 
 const val WEB_URL = "http://www.erkutaras.com/"
 
@@ -54,7 +55,8 @@ class StateLayoutSampleActivity : AppCompatActivity(), StateLayout.OnStateLayout
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
             super.onReceivedError(view, request, error)
             hasError = true
-            stateLayout.infoImage(R.drawable.ic_android_black_64dp)
+            stateLayout.InfoLayoutBuilder()
+                    .infoImage(R.drawable.ic_android_black_64dp)
                     .infoTitle("Ooops.... :(")
                     .infoMessage("Unexpected error occurred. Please refresh the page!")
                     .infoButton("Refresh", onStateLayoutListener)
