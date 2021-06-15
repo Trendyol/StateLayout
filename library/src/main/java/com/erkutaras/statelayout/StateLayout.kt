@@ -13,24 +13,33 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StyleRes
-import com.erkutaras.statelayout.StateLayout.State.*
+import com.erkutaras.statelayout.StateLayout.State.CONTENT
+import com.erkutaras.statelayout.StateLayout.State.EMPTY
+import com.erkutaras.statelayout.StateLayout.State.ERROR
+import com.erkutaras.statelayout.StateLayout.State.INFO
+import com.erkutaras.statelayout.StateLayout.State.LOADING
+import com.erkutaras.statelayout.StateLayout.State.LOADING_WITH_CONTENT
+import com.erkutaras.statelayout.StateLayout.State.NONE
 
 /**
  * Created by erkutaras on 9.09.2018.
  */
-class StateLayout: FrameLayout {
+class StateLayout : FrameLayout {
 
     private var contentLayout: View? = null
     private var loadingLayout: View? = null
     private var infoLayout: View? = null
     private var loadingWithContentLayout: View? = null
 
-    private var state: State = NONE
+    var state: State = NONE
+        private set
 
     @LayoutRes
     private var loadingLayoutRes: Int = R.layout.layout_state_loading
+
     @LayoutRes
     private var infoLayoutRes: Int = R.layout.layout_state_info
+
     @LayoutRes
     private var loadingWithContentLayoutRes: Int = R.layout.layout_state_loading_with_content
 
@@ -48,7 +57,8 @@ class StateLayout: FrameLayout {
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int)
+        : super(context, attrs, defStyleAttr, defStyleRes) {
         obtainCustomAttributes(attrs, defStyleAttr, defStyleRes)
     }
 
@@ -58,7 +68,10 @@ class StateLayout: FrameLayout {
             state = State.values()[getInteger(R.styleable.StateLayout_sl_state, NONE.ordinal)]
             loadingLayoutRes = getResourceId(R.styleable.StateLayout_sl_loadingLayout, R.layout.layout_state_loading)
             infoLayoutRes = getResourceId(R.styleable.StateLayout_sl_infoLayout, R.layout.layout_state_info)
-            loadingWithContentLayoutRes = getResourceId(R.styleable.StateLayout_sl_loadingWithContentLayout, R.layout.layout_state_loading_with_content)
+            loadingWithContentLayoutRes = getResourceId(
+                R.styleable.StateLayout_sl_loadingWithContentLayout,
+                R.layout.layout_state_loading_with_content
+            )
 
             getResourceId(R.styleable.StateLayout_sl_loadingAnimation, 0).notZero {
                 loadingAnimation = AnimationUtils.loadAnimation(context, it)
@@ -135,13 +148,23 @@ class StateLayout: FrameLayout {
 
     private fun updateLoadingVisibility(visibility: Int) =
         when (visibility) {
-            View.VISIBLE -> loadingLayout.visible { it.startViewAnimation(R.id.customView_state_layout_loading, loadingAnimation) }
+            View.VISIBLE -> loadingLayout.visible {
+                it.startViewAnimation(
+                    R.id.customView_state_layout_loading,
+                    loadingAnimation
+                )
+            }
             else -> loadingLayout.gone { it.clearViewAnimation(R.id.customView_state_layout_loading) }
         }
 
     private fun updateLoadingWithContentVisibility(visibility: Int) =
         when (visibility) {
-            View.VISIBLE -> loadingWithContentLayout.visible { it.startViewAnimation(R.id.customView_state_layout_with_content, loadingWithContentAnimation) }
+            View.VISIBLE -> loadingWithContentLayout.visible {
+                it.startViewAnimation(
+                    R.id.customView_state_layout_with_content,
+                    loadingWithContentAnimation
+                )
+            }
             else -> loadingWithContentLayout.gone { it.clearViewAnimation(R.id.customView_state_layout_with_content) }
         }
 
@@ -321,6 +344,7 @@ class StateLayout: FrameLayout {
     }
 
     companion object {
+
         @JvmStatic
         fun provideLoadingStateInfo() = StateInfo(state = LOADING)
 
@@ -344,6 +368,7 @@ class StateLayout: FrameLayout {
     }
 
     interface OnStateLayoutListener {
+
         fun onStateLayoutInfoButtonClick()
     }
 
@@ -356,9 +381,9 @@ class StateLayout: FrameLayout {
         val infoTitle: String? = null,
         val infoMessage: String? = null,
         val infoButtonText: String? = null,
-        val state: StateLayout.State = INFO,
+        val state: State = INFO,
         @Deprecated("onInfoButtonClick is more convenient")
-        val onStateLayoutListener: StateLayout.OnStateLayoutListener? = null,
+        val onStateLayoutListener: OnStateLayoutListener? = null,
         val onInfoButtonClick: (() -> Unit)? = null,
         val loadingAnimation: Animation? = null,
         val loadingWithContentAnimation: Animation? = null

@@ -8,7 +8,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import com.erkutaras.statelayout.StateLayout
-import kotlinx.android.synthetic.main.activity_state_layout_sample.*
+import com.erkutaras.statelayout.sample.databinding.ActivityAnimationLoadingSampleBinding
 
 /**
  * Created by erkutaras on 2.02.2019.
@@ -17,29 +17,36 @@ private const val WEB_URL = "https://github.com/erkutaras"
 
 class AnimationLoadingSampleActivity : SampleBaseActivity(), StateLayout.OnStateLayoutListener {
 
+    private lateinit var binding: ActivityAnimationLoadingSampleBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_animation_loading_sample)
+        binding = ActivityAnimationLoadingSampleBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        webView.webViewClient = SampleWebViewClient(stateLayout, this)
-        webView.loadUrl(WEB_URL)
+        binding.webView.webViewClient = SampleWebViewClient(binding.stateLayout, this)
+        binding.webView.loadUrl(WEB_URL)
     }
 
     override fun getMenuResId(): Int = R.menu.menu_animation_loading
 
     override fun onStateLayoutInfoButtonClick() {
-        webView.loadUrl(WEB_URL)
+        binding.webView.loadUrl(WEB_URL)
         Toast.makeText(this, "Refreshing Page...", Toast.LENGTH_SHORT).show()
     }
 
     override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack()
-        else super.onBackPressed()
+        if (binding.webView.canGoBack()) {
+            binding.webView.goBack()
+        } else {
+            super.onBackPressed()
+        }
     }
 
-    private class SampleWebViewClient(val stateLayout: StateLayout,
-                                      val onStateLayoutListener: StateLayout.OnStateLayoutListener)
-        : WebViewClient() {
+    private class SampleWebViewClient(
+        val stateLayout: StateLayout,
+        val onStateLayoutListener: StateLayout.OnStateLayoutListener
+    ) : WebViewClient() {
 
         var hasError: Boolean = false
 
@@ -66,6 +73,5 @@ class AnimationLoadingSampleActivity : SampleBaseActivity(), StateLayout.OnState
                     onStateLayoutListener.onStateLayoutInfoButtonClick()
                 }
         }
-
     }
 }
